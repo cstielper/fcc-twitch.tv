@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>FCC Twitch.TV Viewer</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Encode+Sans:300,400,500,700">
+	<style>
+		html {
+			font-size: 1rem;
+		}
+
+		body {
+			font-family: 'Encode Sans', sans-serif;
+			font-size: 1em;
+			line-height: 1.5;
+			background-color: #19171C;
+			margin: 0;
+			padding: 0;
+		}
+
+		button,
+		.btn {
+			font-size: 1rem;
+			border: none;
+			background-color: #19171C;
+			color: #FFF;
+			padding: 0.375em 1em;
+			text-decoration: none;
+			margin-left: auto;
+			-webkit-appearance: none;
+			outline: none;
+		}
+
+		button: focus {
+			outline: none;
+		}
+
+		button:hover {
+			cursor: pointer;
+		}
+
+		strong {
+			font-weight: 700;
+		}
+
+		.wrapper {
+			max-width: 50em;
+			margin: 0 auto 2em;
+		}
+
+		header {
+			background-color: #4B367C;
+			border-bottom: 10px solid #0E9DD9;
+			display: flex;
+			align-items: center;
+			padding: 1em;
+		}
+
+		header svg {
+			fill: #FFF;
+		}
+
+		.key {
+			margin-left: auto;
+			color: #FFF;
+		}
+
+		.key span {
+			font-size: 0.75em;
+			margin-left: 1em;
+		}
+
+		.key span:before {
+			content: '';
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+		}
+
+		.key span.online:before {
+			background-color: #8fe182;
+		}
+
+		.key span.offline:before {
+			background-color: #c7c8c9;
+		}
+
+		.channel-nav {
+			display: flex;
+			margin-top: 1em;
+		}
+
+		.channel-nav button {
+			font-weight: 300;
+			font-size: 0.75em;
+			line-height: 1.125;
+			letter-spacing: 0.125em;
+			padding: 1.25em 1em;
+			width: 50%;
+			text-transform: uppercase;
+		}
+
+		.channel-nav button.active {
+			background-color: #957dcb;
+		}
+
+		#channels-wrapper {
+			background-color: #FFF;
+			border: 7px solid #957dcb;
+		}
+
+		#channels-wrapper>div {
+			display: none;
+		}
+
+		#channels-wrapper>div.active {
+			display: block;
+		}
+
+		.channel {
+			padding: 0.5em 1em;
+			border-bottom: 1px solid #FFF;
+		}
+
+		.channel:first-child {
+			border-top: 1px solid #FFF;
+		}
+
+		.channel-main-info {
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+		}
+
+		.channel-sub-info {
+			display: none;
+			font-size: 0.875em;
+			display: flex;
+			justify-content: space-between;
+			max-height: 0;
+			overflow: hidden;
+			transition: max-height 0.5s;
+		}
+
+		.channel-sub-info>div {
+			flex: 1 1 30%;
+			padding: 1em 0;
+		}
+
+		.channel-sub-info.active {
+			max-height: 500px;
+		}
+
+		.logo {
+			border-radius: 50%;
+			width: 45px;
+		}
+
+		.channel-name {
+			font-weight: 500;
+			margin-left: 1em;
+		}
+
+		.channel-name a {
+			color: #000;
+			text-decoration: none;
+		}
+
+		.channel-name a:hover {
+			text-decoration: underline;
+		}
+
+		div.online {
+			background-color: #8fe182;
+		}
+
+		div.offline {
+			background-color: #c7c8c9;
+		}
+
+		@media (min-width: 34.5em) {
+			#channels-wrapper {
+				margin-left: 1.25em;
+				margin-right: 1.25em;
+			}
+
+			.channel-nav {
+				margin-left: 3em;
+				margin-right: 3em;
+			}
+
+			.logo {
+				width: 70px;
+			}
+
+			.channel-toggle {
+				padding: 0.375em 1.5em;
+			}
+
+			.channel-name {
+				font-size: 1.125em;
+			}
+
+			.channel-sub-info div:first-child {
+				padding-left: 90px;
+			}
+		}
+
+		@media (min-width: 47em) {
+			body {
+				font-size: 1.0625em;
+			}
+
+			header {
+				padding-left: 2em;
+				padding-right: 2em;
+			}
+
+			header svg {
+				width: 125px;
+				height: 43px;
+			}
+
+			.logo {
+				width: 90px;
+			}
+
+			#channels-wrapper {
+				margin-left: 2.25em;
+				margin-right: 2.25em;
+				border-width: 12px;
+			}
+
+			.channel-nav {
+				margin-left: 4.5em;
+				margin-right: 4.5em;
+			}
+
+			.channel {
+				padding: 0.5em 2em;
+			}
+
+			.channel-sub-info div:first-child {
+				padding-left: 110px;
+			}
+
+			.channel-toggle {
+				padding: 0.375em 2.5em;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<svg height="32px" version="1.1" viewBox="0 0 94 32" width="94px" x="0px" y="0px" class="svg-logo_twitch">
+			<path clip-rule="evenodd" d="M88,5h-6V0h-9l-6,5h-5.5L59,7.5V5h-5V0H36v5H16l-5-5H0v22l5,5.25L14,32h6v-1.5l3,1.5h12l2-3l1,3h7v-3l3,3h8l0.5-3l2.5,3h10l3-3v3h4l3-3v3h7l7-6V10L88,5z M13,13H8v6h5v6H6l-4-4V2h6v5h5V13z M36,21.5L32.5,25H15V7h6v12h2V7h6v12h2V7h5V21.5z M44,25h-6V7h6V25z M44,5h-6V2h6V5z M57,13h-5v6h5v6h-7l-4-4V2h6v5h5V13z M72,13h-7v6h7v6h-9l-4-4V11l4-4h9V13z M91,25h-6V13h-5v12h-6V2h6v5h7l4,4V25z"
+			 fill-rule="evenodd"></path>
+		</svg>
+		<div class="key">
+			<span class="online"> = Online</span>
+			<span class="offline"> = Offline</span>
+		</div>
+	</header>
+	<div class="wrapper">
+		<div class="channel-nav">
+			<button id="toggle-my-channels" class="active toggle-pane">My Channels</button>
+			<button id="toggle-featured-channels" class="toggle-pane">Featured Channels</button>
+		</div>
+		<div id="channels-wrapper">
+			<div id="my-channels" class="active channel-pane"></div>
+			<div id="featured-channels" class="channel-pane"></div>
+		</div>
+	</div>
+	<script>
+		const channelInfoEndpoint = "https://wind-bow.glitch.me/twitch-api/channels/";
+		const channelStatusEndpoint = "https://wind-bow.glitch.me/twitch-api/streams/";
+		const featuredChannelEndpoint =
+			"https://wind-bow.glitch.me/twitch-api/streams/featured";
+		const channelIDs = [
+			"ESL_SC2",
+			"OgamingSC2",
+			"cretetion",
+			"freecodecamp",
+			"storbeck",
+			"habathcx",
+			"RobotCaleb",
+			"noobs2ninjas",
+			"cirouss",
+			"iamthanh",
+			"nichtnilo"
+		];
+		const staticThumb =
+			"https://res.cloudinary.com/dh1jutnwk/image/upload/v1504106752/twitch-user_ys0g9w.gif";
+		const paneBtns = Array.from(document.querySelectorAll(".toggle-pane"));
+
+		// GET DATA FOR "MY CHANNELS"
+		const channels = [];
+		let count = 0;
+
+		function getChannelInfo(channel) {
+			// Get info about each channel
+			fetch(channelInfoEndpoint + channel)
+				.then(response => response.json())
+				.then(function (data) {
+					const channelInfo = data;
+					// Get channel online status once channel info is received
+					fetch(channelStatusEndpoint + channel)
+						.then(response => response.json())
+						.then(function (data) {
+							const channelStatus = data;
+							// Push channel info and status to an array to build DOM elements
+							channels.push([channelInfo, channelStatus]);
+							// Increment counter and when all channels have been processed, pass the array to build the DOM elements
+							count++;
+							if (count === channelIDs.length) {
+								buildChannelInfo(channels);
+							}
+						})
+						.catch(err => alert(err));
+				})
+				.catch(err => alert(err));
+		}
+
+		// GET DATA FOR "FEATURED CHANNELS"
+		function getFeaturedChannelInfo() {
+			fetch(featuredChannelEndpoint)
+				.then(response => response.json())
+				.then(data => buildFeaturedChannelInfo(data.featured))
+				.catch(err => alert(err));
+		}
+
+		// BUILD VARIABLES FOR "MY CHANNELS"
+		function buildChannelInfo(arr) {
+			//console.log(channels);
+			for (let i = 0; i < arr.length; i++) {
+				const name = arr[i][0].display_name;
+				const followers = `<strong>Followers:</strong> ${(arr[i][0].followers +
+					"").replace(/(\d)(?=(\d{3})+$)/g, "$1,")}<br>`;
+				const views = `<strong>Views:</strong> ${(arr[i][0].views + "").replace(
+					/(\d)(?=(\d{3})+$)/g,
+					"$1,"
+				)}<br>`;
+				const url = arr[i][0].url;
+
+				let game = arr[i][0].game;
+				game ? (game = `<strong>Game:</strong> ${game}<br>`) : (game = "");
+
+				let thumb = arr[i][0].logo;
+				thumb ? thumb : (thumb = staticThumb);
+
+				const active = arr[i][1].stream;
+				let status, currentStream;
+				if (active) {
+					status = "online";
+					currentStream = `This channel is currently ${status}: <br><br><strong>Status:</strong> ${arr[
+						i
+					][1].stream.channel.status}.`;
+				} else {
+					status = "offline";
+					currentStream = `This channel is currently ${status}.`;
+				}
+
+				if (!arr[i][0].hasOwnProperty("error")) {
+					createChannel(
+						name,
+						followers,
+						views,
+						url,
+						game,
+						thumb,
+						status,
+						currentStream,
+						"user"
+					);
+				}
+			}
+		}
+
+		// BUILD VARIABLES FOR "FEATURED CHANNELS"
+		function buildFeaturedChannelInfo(arr) {
+			//console.log(arr);
+			for (let i = 0; i < 10; i++) {
+				const name = arr[i].stream.channel.name;
+				const followers = `<strong>Followers:</strong> ${(arr[i].stream.channel
+					.followers + "").replace(/(\d)(?=(\d{3})+$)/g, "$1,")}<br>`;
+				const views = `<strong>Views:</strong> ${(arr[i].stream.channel.views +
+					"").replace(/(\d)(?=(\d{3})+$)/g, "$1,")}<br>`;
+				const url = arr[i].stream.channel.url;
+
+				let game = arr[i].stream.channel.game;
+				game ? (game = `<strong>Game:</strong> ${game}<br>`) : (game = "");
+
+				let thumb = arr[i].stream.channel.logo;
+				thumb ? thumb : (thumb = staticThumb);
+
+				const status = "online";
+				const currentStream = `This channel is currently ${status}: <br><br><strong>Status:</strong> ${arr[
+					i
+				].stream.channel.status}.`;
+
+				createChannel(
+					name,
+					followers,
+					views,
+					url,
+					game,
+					thumb,
+					status,
+					currentStream,
+					"featured"
+				);
+			}
+		}
+
+		// ADD CHANNELS TO THE DOM
+		function createChannel(
+			name,
+			followers,
+			views,
+			url,
+			game,
+			thumb,
+			status,
+			currentStream,
+			type
+		) {
+			const channel = document.createElement("div");
+			channel.className = "channel";
+			channel.classList.add(status);
+
+			const channelInfo = `
+				<div class="channel-main-info">
+					<img src="${thumb}" alt="${name}" class="logo">
+					<span class="channel-name"><a href="${url}" target="_blank">${name} &raquo;</a></span>
+					<button class="channel-toggle">Info</button>
+				</div>
+				<div class="channel-sub-info">
+					<div>
+						${followers}
+						${game}
+						${views}
+					</div>
+					<div>
+						${currentStream}
+					</div>
+				</div>
+			`;
+			channel.innerHTML = channelInfo;
+
+			if (type === "user") {
+				document.getElementById("my-channels").append(channel);
+			} else {
+				document.getElementById("featured-channels").append(channel);
+			}
+		}
+
+		// TOGGLE CHANNEL INFO
+		document.addEventListener("click", function (e) {
+			if (
+				e.target.tagName.toLowerCase() === "button" &&
+				e.target.classList.contains("channel-toggle")
+			) {
+				e.target.parentNode.nextElementSibling.classList.toggle("active");
+			}
+		});
+
+		// TOGGLE CHANNEL PANES
+		for (let i = 0; i < paneBtns.length; i++) {
+			paneBtns[i].addEventListener("click", togglePanes);
+		}
+
+		function togglePanes() {
+			const panes = document.querySelectorAll(".channel-pane");
+			paneBtns.forEach(element => {
+				element.classList.remove("active");
+			});
+			this.classList.add("active");
+
+			panes.forEach(element => {
+				if (element.id === this.id.replace("toggle-", "")) {
+					element.classList.add("active");
+				} else {
+					element.classList.remove("active");
+				}
+			});
+		}
+
+		// KICK IT OFF
+		window.addEventListener("load", function () {
+			channelIDs.map(channel => getChannelInfo(channel));
+			getFeaturedChannelInfo();
+		});
+
+	</script>
+</body>
+
+</html>
